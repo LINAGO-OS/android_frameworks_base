@@ -985,6 +985,8 @@ public final class SystemServer implements Dumpable {
 
             LocalServices.addService(SystemServiceManager.class, mSystemServiceManager);
 
+            AxExtServiceFactory.init(mSystemContext);
+
             // Lazily load the pre-installed system font map in SystemServer only if we're not doing
             // the optimized font loading in the FontManagerService.
             if (!com.android.text.flags.Flags.useOptimizedBoottimeFontLoading()
@@ -1283,6 +1285,7 @@ public final class SystemServer implements Dumpable {
         mActivityManagerService.setSystemServiceManager(mSystemServiceManager);
         mActivityManagerService.setInstaller(installer);
         mWindowManagerGlobalLock = atm.getGlobalLock();
+        AxExtServiceFactory.injectActivityManagerService(mActivityManagerService);
         t.traceEnd();
 
         // Data loader manager service needs to be started before package manager
@@ -1381,6 +1384,16 @@ public final class SystemServer implements Dumpable {
         // before PackageManagerService starts processing binder calls to notifyDexLoad.
         LocalManagerRegistry.addManager(
                 DexUseManagerLocal.class, DexUseManagerLocal.createInstance(mSystemContext));
+        t.traceEnd();
+
+        AxExtServiceFactory.injectPackageManagerservice(mPackageManagerService);
+
+        t.traceBegin("InitVBMetaDigest");
+        try {
+            android.security.trickystore.AttestationUtils.initBootHash();
+        } catch (Throwable e) {
+            Slog.e(TAG, "Failed to init VBMeta digest", e);
+        }
         t.traceEnd();
 
         if (!mRuntimeRestart && !isFirstBootOrUpgrade()) {
@@ -1727,6 +1740,7 @@ public final class SystemServer implements Dumpable {
             mSystemServiceManager.startBootPhase(t, SystemService.PHASE_WAIT_FOR_SENSOR_SERVICE);
             wm = WindowManagerService.main(context, inputManager, !mFirstBoot,
                     new PhoneWindowManager(), mActivityManagerService.mActivityTaskManager);
+            AxExtServiceFactory.injectWindowManagerService(wm);
             ServiceManager.addService(Context.WINDOW_SERVICE, wm, /* allowIsolated= */ false,
                     DUMP_FLAG_PRIORITY_CRITICAL | DUMP_FLAG_PRIORITY_HIGH
                             | DUMP_FLAG_PROTO);

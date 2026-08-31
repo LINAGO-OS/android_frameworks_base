@@ -8010,14 +8010,14 @@ public final class ActivityThread extends ClientTransactionHandler
         mConfigurationController.updateLocaleListFromAppContext(appContext);
 
         PlayIntegritySpoofService pifService = PlayIntegritySpoofService.getInstance();
-        if (data.processName != null && pifService.shouldSpoof(data.processName)) {
+        if (pifService.shouldSpoof(data.processName)) {
             pifService.spoofBuildFields(data.processName);
             if (pifService.isSpoofSignatureEnabled()) {
                 pifService.spoofSignature();
             }
         }
 
-        if (data.appInfo != null && pifService.shouldSpoofPhotos(data.appInfo.packageName)) {
+        if (pifService.shouldSpoofPhotos(data.appInfo.packageName)) {
             pifService.spoofPhotosProps();
         }
 
