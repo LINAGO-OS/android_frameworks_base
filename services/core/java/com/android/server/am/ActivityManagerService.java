@@ -445,6 +445,7 @@ import com.android.internal.util.MemInfoReader;
 import com.android.internal.util.Preconditions;
 import com.android.internal.util.function.pooled.PooledLambda;
 import com.android.server.AlarmManagerInternal;
+import com.android.server.AxExtServiceFactory;
 import com.android.server.BootReceiver;
 import com.android.server.DeviceIdleInternal;
 import com.android.server.DisplayThread;
@@ -5288,6 +5289,10 @@ public class ActivityManagerService extends IActivityManager.Stub
         ZYGOTE_PROCESS.bootCompleted();
         VMRuntime.bootCompleted();
 
+        mHandler.postDelayed(() -> {
+            AxExtServiceFactory.onLateSystemReady();
+        }, 5000);
+
         IntentFilter pkgFilter = new IntentFilter();
         pkgFilter.addAction(Intent.ACTION_QUERY_PACKAGE_RESTART);
         pkgFilter.addDataScheme("package");
@@ -9123,6 +9128,8 @@ public class ActivityManagerService extends IActivityManager.Stub
             Slog.wtf(TAG, "PowerManagerInternal not found.");
         }
         t.traceEnd();
+
+        AxExtServiceFactory.systemReady();
 
         if (goingCallback != null) goingCallback.run();
 
@@ -19942,5 +19949,30 @@ public class ActivityManagerService extends IActivityManager.Stub
             return;
         }
         r.getWindowProcessController().setOptimizationInfo(compilerFilter, compilationReason);
+    }
+
+    @Override
+    public String getSpoofPifConfig() {
+        return AxExtServiceFactory.getSpoofManager().getPifConfig();
+    }
+
+    @Override
+    public String getSpoofPifSpoofPhotos() {
+        return AxExtServiceFactory.getSpoofManager().getPifSpoofPhotos();
+    }
+
+    @Override
+    public String getSpoofTrickyStoreTarget() {
+        return AxExtServiceFactory.getSpoofManager().getTrickyStoreTarget();
+    }
+
+    @Override
+    public String getSpoofTrickyStoreKeyBox() {
+        return AxExtServiceFactory.getSpoofManager().getTrickyStoreKeyBox();
+    }
+
+    @Override
+    public String getSpoofTrickyStorePatch() {
+        return AxExtServiceFactory.getSpoofManager().getTrickyStorePatch();
     }
 }
